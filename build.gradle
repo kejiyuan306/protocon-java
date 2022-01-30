@@ -27,7 +27,20 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.20'
 }
 
+bootJar {
+    enabled=false
+}
+
+jar {
+    enabled=true
+}
+
 publishing {
+	publications {
+        library(MavenPublication) {
+            artifact jar
+        }
+    }
 	repositories {
 		maven {
 			name = "GitHubPackages"
