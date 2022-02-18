@@ -1,18 +1,20 @@
-package com.example.protocon.service;
+package com.example.protocon;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.example.protocon.service.GatewayService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest("protocon.port=8082")
+@SpringBootTest("protocon.port=8083")
 public class GatewayServiceTests {
     @Autowired
-    GatewayService service;
+    GatewayService gateway;
 
     @Test
     void testMessage() {
-        assertEquals("port: 8082", service.getMessage());
+        assertEquals("port: 8083", gateway.getMessage());
     }
 }

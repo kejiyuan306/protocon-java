@@ -1,5 +1,12 @@
 package com.example.protocon.service;
 
-public interface GatewayService {
-    String getMessage();
+import lombok.Data;
+
+@Data
+public class GatewayService {
+    private int port = 8082;
+
+    public String getMessage() {
+        return "port: " + port;
+    }
 }
