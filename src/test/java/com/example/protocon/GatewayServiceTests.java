@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest("protocon.port=8083")
+@SpringBootTest
 public class GatewayServiceTests {
     @Autowired
     GatewayService gateway;
