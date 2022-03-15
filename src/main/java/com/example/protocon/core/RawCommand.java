@@ -8,7 +8,7 @@ import com.example.protocon.bo.ResponseBo;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-class Request {
+class RawRequest {
     final ClientToken tk;
     final long clientId;
     final long gatewayId;
@@ -17,14 +17,14 @@ class Request {
 }
 
 @AllArgsConstructor
-class Response {
+class RawResponse {
     final ClientToken tk;
     final short cmdId;
     final ResponseBo bo;
 }
 
 @AllArgsConstructor
-class SignInRequest {
+class RawSignInRequest {
     final ClientToken tk;
     final InetSocketAddress addr;
     final short cmdId;
@@ -33,14 +33,14 @@ class SignInRequest {
 }
 
 @AllArgsConstructor
-class SignInResponse {
+class RawSignInResponse {
     final ClientToken tk;
     final short cmdId;
     final byte status;
 }
 
 @AllArgsConstructor
-class SignUpRequest {
+class RawSignUpRequest {
     final ClientToken tk;
     final InetSocketAddress addr;
     final short cmdId;
@@ -48,7 +48,7 @@ class SignUpRequest {
 }
 
 @AllArgsConstructor
-class SignUpResponse {
+class RawSignUpResponse {
     final ClientToken tk;
     final short cmdId;
     final long clientId;

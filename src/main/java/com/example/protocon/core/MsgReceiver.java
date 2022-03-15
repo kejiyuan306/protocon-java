@@ -27,10 +27,10 @@ class MsgReceiver {
     final ClientToken tk;
     InetSocketAddress addr;
 
-    final ConcurrentLinkedQueue<Request> requestTx;
-    final ConcurrentLinkedQueue<Response> responseTx;
-    final ConcurrentLinkedQueue<SignUpRequest> signUpRequestTx;
-    final ConcurrentLinkedQueue<SignInRequest> signInRequestTx;
+    final ConcurrentLinkedQueue<RawRequest> requestTx;
+    final ConcurrentLinkedQueue<RawResponse> responseTx;
+    final ConcurrentLinkedQueue<RawSignUpRequest> signUpRequestTx;
+    final ConcurrentLinkedQueue<RawSignInRequest> signInRequestTx;
 
     final ConcurrentLinkedQueue<ClientToken> disconnectionTx;
 
@@ -105,7 +105,7 @@ class MsgReceiver {
             return false;
         }
 
-        requestTx.add(new Request(tk, clientId, gatewayId, cmdId, new RequestBo(time, type, data)));
+        requestTx.add(new RawRequest(tk, clientId, gatewayId, cmdId, new RequestBo(time, type, data)));
 
         log.info("收到请求，client token：{}，type：{}，value：{}", tk.value, type, data);
 
@@ -125,7 +125,7 @@ class MsgReceiver {
         if (!readExact(is, buf, length)) return false;
         String data = new String(buf, 0, length);
 
-        responseTx.add(new Response(tk, cmdId, new ResponseBo(time, status, data)));
+        responseTx.add(new RawResponse(tk, cmdId, new ResponseBo(time, status, data)));
 
         log.info("收到响应，client token：{}，status：{}，value：{}", tk.value, status, data);
 
@@ -136,7 +136,7 @@ class MsgReceiver {
         if (!readExact(is, buf, Long.BYTES)) return false;
         long gatewayId = ByteBuffer.wrap(buf).order(ByteOrder.BIG_ENDIAN).getLong();
 
-        signUpRequestTx.add(new SignUpRequest(tk, addr, cmdId, gatewayId));
+        signUpRequestTx.add(new RawSignUpRequest(tk, addr, cmdId, gatewayId));
 
         log.info("收到注册请求，client token：{}，gateway ID：{}", tk.value, gatewayId);
 
@@ -150,7 +150,7 @@ class MsgReceiver {
         if (!readExact(is, buf, Long.BYTES)) return false;
         long clientId = ByteBuffer.wrap(buf).order(ByteOrder.BIG_ENDIAN).getLong();
 
-        signInRequestTx.add(new SignInRequest(tk, addr, cmdId, gatewayId, clientId));
+        signInRequestTx.add(new RawSignInRequest(tk, addr, cmdId, gatewayId, clientId));
 
         log.info("收到登录请求，gateway ID：{}，client ID：{}", gatewayId, clientId);
 

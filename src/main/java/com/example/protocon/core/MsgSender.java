@@ -17,12 +17,12 @@ class MsgSender {
     final Socket socket;
     final ClientToken tk;
 
-    final ConcurrentLinkedQueue<Request> requestRx;
-    final ConcurrentLinkedQueue<Response> responseRx;
-    final ConcurrentLinkedQueue<SignUpResponse> signUpResponseRx;
-    final ConcurrentLinkedQueue<SignInResponse> signInResponseRx;
+    final ConcurrentLinkedQueue<RawRequest> requestRx;
+    final ConcurrentLinkedQueue<RawResponse> responseRx;
+    final ConcurrentLinkedQueue<RawSignUpResponse> signUpResponseRx;
+    final ConcurrentLinkedQueue<RawSignInResponse> signInResponseRx;
 
-    void send(Request r) {
+    void send(RawRequest r) {
         var bo = r.bo;
         try {
             DataOutputStream os = new DataOutputStream(socket.getOutputStream());
@@ -45,7 +45,7 @@ class MsgSender {
         }
     }
 
-    void send(Response r) {
+    void send(RawResponse r) {
         var bo = r.bo;
         try {
             DataOutputStream os = new DataOutputStream(socket.getOutputStream());
@@ -65,7 +65,7 @@ class MsgSender {
         }
     }
 
-    void send(SignUpResponse r) {
+    void send(RawSignUpResponse r) {
         try {
             DataOutputStream os = new DataOutputStream(socket.getOutputStream());
             os.writeByte(0x81);
@@ -81,7 +81,7 @@ class MsgSender {
         }
     }
 
-    void send(SignInResponse r) {
+    void send(RawSignInResponse r) {
         try {
             DataOutputStream os = new DataOutputStream(socket.getOutputStream());
             os.writeByte(0x82);

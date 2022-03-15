@@ -54,16 +54,16 @@ public class Gateway {
     final ConcurrentMap<ClientToken, SocketAddress> addrMap = new ConcurrentHashMap<>();
 
     /** 接收到的请求 */
-    final ConcurrentLinkedQueue<Request> requestRx = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<RawRequest> requestRx = new ConcurrentLinkedQueue<>();
 
     /** 接收到的响应 */
-    final ConcurrentLinkedQueue<Response> responseRx = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<RawResponse> responseRx = new ConcurrentLinkedQueue<>();
 
     /** 接收到的注册请求 */
-    final ConcurrentLinkedQueue<SignUpRequest> signUpRequestRx = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<RawSignUpRequest> signUpRequestRx = new ConcurrentLinkedQueue<>();
 
     /** 接收到的登录请求 */
-    final ConcurrentLinkedQueue<SignInRequest> signInRequestRx = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<RawSignInRequest> signInRequestRx = new ConcurrentLinkedQueue<>();
 
     /** 目前断开连接的客户端的 token */
     final ConcurrentLinkedQueue<ClientToken> disconnectionRx = new ConcurrentLinkedQueue<>();
@@ -95,16 +95,16 @@ public class Gateway {
     short cmdIdCounter = 0;
 
     /** 需要向客户端发送的请求 */
-    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<Request>> requestTxMap = new ConcurrentHashMap<>();
+    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<RawRequest>> requestTxMap = new ConcurrentHashMap<>();
 
     /** 需要向客户端发送的响应 */
-    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<Response>> responseTxMap = new ConcurrentHashMap<>();
+    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<RawResponse>> responseTxMap = new ConcurrentHashMap<>();
 
     /** 需要向客户端发送的注册响应 */
-    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<SignUpResponse>> signUpResponseTxMap = new ConcurrentHashMap<>();
+    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<RawSignUpResponse>> signUpResponseTxMap = new ConcurrentHashMap<>();
 
     /** 需要向客户端发送的登陆响应 */
-    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<SignInResponse>> signInResponseTxMap = new ConcurrentHashMap<>();
+    final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<RawSignInResponse>> signInResponseTxMap = new ConcurrentHashMap<>();
 
     /** 目前所有的响应处理器 */
     final Map<ClientTokenCmdIdPair, Consumer<ResponseBo>> responseHandlerMap = new HashMap<>();
@@ -166,9 +166,9 @@ public class Gateway {
         var tk = clientTokenMap.get(clientId);
         var gatewayId = gatewayIdMap.get(clientId);
 
-        ConcurrentLinkedQueue<Request> tx;
+        ConcurrentLinkedQueue<RawRequest> tx;
         if ((tx = requestTxMap.get(tk)) != null) {
-            tx.add(new Request(tk, clientId, gatewayId, cmdId, request));
+            tx.add(new RawRequest(tk, clientId, gatewayId, cmdId, request));
             responseHandlerMap.put(new ClientTokenCmdIdPair(tk, cmdId), consumer);
         } else {
             log.warn("找不到客户端，client ID：{}", clientId);
@@ -188,10 +188,10 @@ public class Gateway {
             var tk = new ClientToken(clientTokenCounter++);
             addrMap.put(tk, socketAddr);
 
-            ConcurrentLinkedQueue<Request> requestTx = new ConcurrentLinkedQueue<>();
-            ConcurrentLinkedQueue<Response> responseTx = new ConcurrentLinkedQueue<>();
-            ConcurrentLinkedQueue<SignUpResponse> signUpResponseTx = new ConcurrentLinkedQueue<>();
-            ConcurrentLinkedQueue<SignInResponse> signInResponseTx = new ConcurrentLinkedQueue<>();
+            ConcurrentLinkedQueue<RawRequest> requestTx = new ConcurrentLinkedQueue<>();
+            ConcurrentLinkedQueue<RawResponse> responseTx = new ConcurrentLinkedQueue<>();
+            ConcurrentLinkedQueue<RawSignUpResponse> signUpResponseTx = new ConcurrentLinkedQueue<>();
+            ConcurrentLinkedQueue<RawSignInResponse> signInResponseTx = new ConcurrentLinkedQueue<>();
             requestTxMap.put(tk, requestTx);
             responseTxMap.put(tk, responseTx);
             signUpResponseTxMap.put(tk, signUpResponseTx);
@@ -231,20 +231,20 @@ public class Gateway {
 
     /** 获取接收到的 Msg 并调用回调 */
     private void receiveMsg() {
-        Request request;
+        RawRequest request;
         while ((request = requestRx.poll()) != null) {
             var client = clientMap.get(request.tk);
 
             var handler = requestHandlerMap.get(request.bo.getType());
             var response = handler.apply(client, request.bo);
-            ConcurrentLinkedQueue<Response> tx;
+            ConcurrentLinkedQueue<RawResponse> tx;
             if ((tx = responseTxMap.get(request.tk)) != null)
-                tx.add(new Response(request.tk, request.cmdId, response));
+                tx.add(new RawResponse(request.tk, request.cmdId, response));
             else
                 log.warn("响应发送失败，客户端断线，client ID：{}", client.getId());
         }
 
-        Response response;
+        RawResponse response;
         while ((response = responseRx.poll()) != null) {
             var handler = responseHandlerMap.remove(
                     new ClientTokenCmdIdPair(response.tk, response.cmdId));
@@ -252,7 +252,7 @@ public class Gateway {
                 handler.accept(response.bo);
         }
 
-        SignUpRequest signUpRequest;
+        RawSignUpRequest signUpRequest;
         while ((signUpRequest = signUpRequestRx.poll()) != null) {
             var tk = signUpRequest.tk;
             long clientId = clientIdCounter++;
@@ -260,7 +260,7 @@ public class Gateway {
 
             signUpResponseTxMap
                     .get(tk)
-                    .add(new SignUpResponse(tk, signUpRequest.cmdId, clientId, (byte) 0));
+                    .add(new RawSignUpResponse(tk, signUpRequest.cmdId, clientId, (byte) 0));
 
             signedUpClientSet.add(client);
             signUpRequestHandler.accept(client);
@@ -268,7 +268,7 @@ public class Gateway {
             log.info("注册成功，client ID：{}", clientId);
         }
 
-        SignInRequest signInRequest;
+        RawSignInRequest signInRequest;
         while ((signInRequest = signInRequestRx.poll()) != null) {
             var tk = signInRequest.tk;
             var client = new ClientBo(
@@ -276,7 +276,7 @@ public class Gateway {
             if (signedUpClientSet.contains(client)) {
                 signInResponseTxMap
                         .get(tk)
-                        .add(new SignInResponse(tk, signInRequest.cmdId, (byte) 0));
+                        .add(new RawSignInResponse(tk, signInRequest.cmdId, (byte) 0));
 
                 clientMap.put(tk, client);
                 clientTokenMap.put(client.getId(), tk);
