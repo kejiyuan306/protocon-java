@@ -2,9 +2,6 @@ package com.example.protocon.core;
 
 import java.net.InetSocketAddress;
 
-import com.example.protocon.bo.RequestBo;
-import com.example.protocon.bo.ResponseBo;
-
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -13,14 +10,14 @@ class RawRequest {
     final long clientId;
     final long gatewayId;
     final short cmdId;
-    final RequestBo bo;
+    final Request bo;
 }
 
 @AllArgsConstructor
 class RawResponse {
     final ClientToken tk;
     final short cmdId;
-    final ResponseBo bo;
+    final Response bo;
 }
 
 @AllArgsConstructor

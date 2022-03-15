@@ -19,10 +19,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.example.protocon.bo.ClientBo;
-import com.example.protocon.bo.RequestBo;
-import com.example.protocon.bo.ResponseBo;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -69,13 +65,13 @@ public class Gateway {
     final ConcurrentLinkedQueue<ClientToken> disconnectionRx = new ConcurrentLinkedQueue<>();
 
     /** 注册的请求处理器 */
-    final Map<Short, BiFunction<ClientBo, RequestBo, ResponseBo>> requestHandlerMap = new HashMap<>();
+    final Map<Short, BiFunction<Client, Request, Response>> requestHandlerMap = new HashMap<>();
 
     /** Client ID 计数器 */
     long clientIdCounter;
 
     /** 所有已注册的客户端 */
-    final Set<ClientBo> signedUpClientSet = new HashSet<>();
+    final Set<Client> signedUpClientSet = new HashSet<>();
 
     /** 客户端 ID 到 token 的映射 */
     final Map<Long, ClientToken> clientTokenMap = new HashMap<>();
@@ -84,13 +80,13 @@ public class Gateway {
     final Map<Long, Long> gatewayIdMap = new HashMap<>();
 
     /** Token 到客户端的映射 */
-    final Map<ClientToken, ClientBo> clientMap = new HashMap<>();
+    final Map<ClientToken, Client> clientMap = new HashMap<>();
 
     /** 注册请求处理器 */
-    Consumer<ClientBo> signUpRequestHandler;
+    Consumer<Client> signUpRequestHandler;
 
     /** 登录请求处理器 */
-    Consumer<ClientBo> signInRequestHandler;
+    Consumer<Client> signInRequestHandler;
 
     short cmdIdCounter = 0;
 
@@ -107,10 +103,10 @@ public class Gateway {
     final ConcurrentMap<ClientToken, ConcurrentLinkedQueue<RawSignInResponse>> signInResponseTxMap = new ConcurrentHashMap<>();
 
     /** 目前所有的响应处理器 */
-    final Map<ClientTokenCmdIdPair, Consumer<ResponseBo>> responseHandlerMap = new HashMap<>();
+    final Map<ClientTokenCmdIdPair, Consumer<Response>> responseHandlerMap = new HashMap<>();
 
     // TODO: We need persistence here, such as SQLite
-    public void init(List<ClientBo> clients) {
+    public void init(List<Client> clients) {
         long maxClientId = 0;
         for (var client : clients)
             maxClientId = Math.max(maxClientId, client.getId());
@@ -146,19 +142,19 @@ public class Gateway {
     }
 
     public void registerRequestHandler(
-            short type, BiFunction<ClientBo, RequestBo, ResponseBo> function) {
+            short type, BiFunction<Client, Request, Response> function) {
         requestHandlerMap.put(type, function);
     }
 
-    public void registerSignUpHandler(Consumer<ClientBo> consumer) {
+    public void registerSignUpHandler(Consumer<Client> consumer) {
         signUpRequestHandler = consumer;
     }
 
-    public void registerSignInHandler(Consumer<ClientBo> consumer) {
+    public void registerSignInHandler(Consumer<Client> consumer) {
         signInRequestHandler = consumer;
     }
 
-    public void send(long clientId, RequestBo request, Consumer<ResponseBo> consumer) {
+    public void send(long clientId, Request request, Consumer<Response> consumer) {
         final short cmdId = cmdIdCounter++;
         if (cmdIdCounter > MAX_CMD_ID)
             cmdIdCounter = 1;
@@ -256,7 +252,7 @@ public class Gateway {
         while ((signUpRequest = signUpRequestRx.poll()) != null) {
             var tk = signUpRequest.tk;
             long clientId = clientIdCounter++;
-            var client = new ClientBo(clientId, signUpRequest.gatewayId, signUpRequest.addr);
+            var client = new Client(clientId, signUpRequest.gatewayId, signUpRequest.addr);
 
             signUpResponseTxMap
                     .get(tk)
@@ -271,7 +267,7 @@ public class Gateway {
         RawSignInRequest signInRequest;
         while ((signInRequest = signInRequestRx.poll()) != null) {
             var tk = signInRequest.tk;
-            var client = new ClientBo(
+            var client = new Client(
                     signInRequest.clientId, signInRequest.gatewayId, signInRequest.addr);
             if (signedUpClientSet.contains(client)) {
                 signInResponseTxMap

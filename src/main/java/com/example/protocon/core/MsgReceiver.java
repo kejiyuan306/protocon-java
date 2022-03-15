@@ -10,9 +10,6 @@ import java.nio.ByteOrder;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.example.protocon.bo.RequestBo;
-import com.example.protocon.bo.ResponseBo;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -105,7 +102,7 @@ class MsgReceiver {
             return false;
         }
 
-        requestTx.add(new RawRequest(tk, clientId, gatewayId, cmdId, new RequestBo(time, type, data)));
+        requestTx.add(new RawRequest(tk, clientId, gatewayId, cmdId, new Request(time, type, data)));
 
         log.info("收到请求，client token：{}，type：{}，value：{}", tk.value, type, data);
 
@@ -125,7 +122,7 @@ class MsgReceiver {
         if (!readExact(is, buf, length)) return false;
         String data = new String(buf, 0, length);
 
-        responseTx.add(new RawResponse(tk, cmdId, new ResponseBo(time, status, data)));
+        responseTx.add(new RawResponse(tk, cmdId, new Response(time, status, data)));
 
         log.info("收到响应，client token：{}，status：{}，value：{}", tk.value, status, data);
 
