@@ -13,9 +13,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @TestInstance(Lifecycle.PER_CLASS)
-public class GatewayServiceTests {
+public class GatewayTests {
     @Autowired
-    GatewayService gateway;
+    Gateway gateway;
 
     @BeforeAll
     void initAll() {

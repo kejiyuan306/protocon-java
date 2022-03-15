@@ -1,7 +1,6 @@
 package com.example.protocon.config;
 
-import com.example.protocon.service.GatewayService;
-import com.example.protocon.service.GatewayServiceImpl;
+import com.example.protocon.service.Gateway;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -16,8 +15,8 @@ public class ProtoconAutoConfiguration {
     private int port = 8082;
 
     @Bean
-    public GatewayService gateway() {
-        var gateway = new GatewayServiceImpl();
+    public Gateway gateway() {
+        var gateway = new Gateway();
         gateway.setListenPort(port);
         return gateway;
     }

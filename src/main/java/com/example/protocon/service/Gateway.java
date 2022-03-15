@@ -30,7 +30,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GatewayServiceImpl implements GatewayService {
+public class Gateway {
     private static final short API_VERSION = 0x0002;
     private static final short MAX_CMD_ID = 0x7fff;
 
@@ -109,6 +109,7 @@ public class GatewayServiceImpl implements GatewayService {
     /** 目前所有的响应处理器 */
     final Map<ClientTokenCmdIdPair, Consumer<ResponseBo>> responseHandlerMap = new HashMap<>();
 
+    // TODO: We need persistence here, such as SQLite
     public void init(List<ClientBo> clients) {
         long maxClientId = 0;
         for (var client : clients)
@@ -140,28 +141,23 @@ public class GatewayServiceImpl implements GatewayService {
         serverThread.start();
     }
 
-    @Override
     public List<SocketAddress> getAllAddrs() {
         return addrMap.values().stream().collect(Collectors.toList());
     }
 
-    @Override
     public void registerRequestHandler(
             short type, BiFunction<ClientBo, RequestBo, ResponseBo> function) {
         requestHandlerMap.put(type, function);
     }
 
-    @Override
     public void registerSignUpHandler(Consumer<ClientBo> consumer) {
         signUpRequestHandler = consumer;
     }
 
-    @Override
     public void registerSignInHandler(Consumer<ClientBo> consumer) {
         signInRequestHandler = consumer;
     }
 
-    @Override
     public void send(long clientId, RequestBo request, Consumer<ResponseBo> consumer) {
         final short cmdId = cmdIdCounter++;
         if (cmdIdCounter > MAX_CMD_ID)
@@ -214,7 +210,7 @@ public class GatewayServiceImpl implements GatewayService {
                     signUpRequestRx,
                     signInRequestRx,
                     disconnectionRx)
-                            .run();
+                    .run();
             new MsgSender(
                     API_VERSION,
                     connected,
@@ -224,7 +220,7 @@ public class GatewayServiceImpl implements GatewayService {
                     responseTx,
                     signUpResponseTx,
                     signInResponseTx)
-                            .run();
+                    .run();
 
         } catch (SocketTimeoutException e) {
             // 非阻塞式 accept，超时不需要处理
