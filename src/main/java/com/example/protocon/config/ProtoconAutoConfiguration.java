@@ -1,6 +1,6 @@
 package com.example.protocon.config;
 
-import com.example.protocon.service.Gateway;
+import com.example.protocon.core.Gateway;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

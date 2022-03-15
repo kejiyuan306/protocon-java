@@ -1,4 +1,4 @@
-package com.example.protocon.service;
+package com.example.protocon.core;
 
 import java.io.IOException;
 import java.io.InputStream;
