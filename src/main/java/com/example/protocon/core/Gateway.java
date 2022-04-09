@@ -259,7 +259,8 @@ public class Gateway {
                     .add(new RawSignUpResponse(tk, signUpRequest.cmdId, clientId, (byte) 0));
 
             signedUpClientSet.add(client);
-            signUpRequestHandler.accept(client);
+            if (signUpRequestHandler != null)
+                signUpRequestHandler.accept(client);
 
             log.info("注册成功，client ID：{}", clientId);
         }
@@ -278,7 +279,8 @@ public class Gateway {
                 clientTokenMap.put(client.getId(), tk);
                 gatewayIdMap.put(client.getId(), client.getGatewayId());
 
-                signInRequestHandler.accept(client);
+                if (signInRequestHandler != null)
+                    signInRequestHandler.accept(client);
 
                 log.info("登录成功，client ID：{}", signInRequest.clientId);
             } else {
